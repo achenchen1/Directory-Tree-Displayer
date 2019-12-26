@@ -1,46 +1,75 @@
 #!/usr/bin/env python
-
+from colletions import deque
+from pathlib import Path
+import os
+import pathlib
 import sys
 
-class Queue:
-    pass
-    # To do
+class Directory:
+    def __init__(self, path=None, strict_case=False):
+        self.directory = path
+        self.strict_case = strict_case
+        self.path = self.check_path(path)
 
-class Stack:
-    pass
-    # To do
+    def check_path(self, path):
+        # If we're on, in my case, a Mac, Python doesn't recognize the tilde expansion.
+        path = os.path.expanduser(path)
+        if os.path.exists(path):
+            return path
+        else:
+            print("Path does not exist. Defaulting to root of computer.") if path else pass
+            return self.goto_root()
 
+    def goto_root(self):
+        current = pathlib.Path(os.getcwd())
+        if current == current.parent:
+            return current
+        else:
+            while current.parent != current:
+                current = current.parent
+            return current
+
+class DirectorySearcher(DirectoryTraverser): 
+    def __init__(self, target, path=None, strict_case=False):
+        Directory.__init__(self, path, strict_case)
+        self.target = target
+
+    def find_all(self, current=None, results=[]):
+        if not current:
+            current = self.path
+        
+        # TODO - if target is more than one layer, can we still find it?
+        current_items = os.listdir(current)
+        for item in current_items:
+            if Path(item) == Path(self.target):
+                results.append(os.path.abspath(Path(item)))
+            if 
+
+        
 
 def help():
     print('''
 Directory Explorer by Alex Chen
-Accepts relative paths, and all arguments and options are case insensitive.
+Accepts relative paths, absolute paths (relative paths take priority), and all arguments and options are case insensitive.
 
     Arguments:
-        Display (or 'd')
-            Displays directories and files. Display depth can be configured with options (see below). 
+        --d
+            Displays directories and files in current directory. Display depth can be configured with options (see below). 
+            If --path is specified, displays under path instead, essentially the same as going into the directory specified with --path, calling display, and then coming back to current working directory.
         
-        Search (or 's') [file name]
-            Searches directories for specified file. Search depth can be configured with options (see below).
+        --s [file or directory name]
+            Searches directories for all occurences of specified file. Search depth can be configured with options (see below).
+            In the future: implement regex support for this.
+
+        --f [file or directory name]
+            Similar to --s, but will return only the first found occurence. Typically finds the \'shallowest\' result. 
     
     Options:
-        --depth [number >= 0]
-            Specifies how deep for the command to go. For example, display my_directory --depth 0 will only 
-            search in my_directory, while --depth 0 will search my_directory and one beneath it. Default is
-            to go as deep as possible.
-        
-        --path [path] or --directory
+        --path [path] 
             Specifies which directory to execute under. Default is current directory.
         
         --strict-case
             Will perform case-sensitive Search.
-        
-    Examples:
-        DirectoryTree.py d --depth 0
-        (Displays only files and directories in current working directory)
-        
-        DirectoryTree.py s My_Text_File.txt --path /users/Alice/Documents
-        (Looks for all results matching My_Text_File.txt in all subdirectories of /users/Alice/Documents)
 ''')
 
 
