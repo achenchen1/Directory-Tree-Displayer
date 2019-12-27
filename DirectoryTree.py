@@ -18,20 +18,19 @@ class Directory:
 			return path
 		else:
 			print("Path does not exist. Defaulting to root of computer.") if path else pass
-			return self.goto_root()
+			return self._goto_root()
 
-	def goto_root(self):
+	def _goto_root(self):
+		# In the future, maybe consider a binary search. But it looks like for a binary search, we'd be looking at errors, which are expensive to handle.
 		current = pathlib.Path(os.getcwd())
-		if current == current.parent:
-			return current
-		else:
-			while current.parent != current:
+		while current.parent != current:
 			current = current.parent
-			return current
+		return current
 
 class DirectorySearcher(DirectoryTraverser): 
 	def __init__(self, target, path=None, strict_case=False):
 		Directory.__init__(self, path, strict_case)
+		self.results = []
 		try:
 			self.target = Path(target)
 		except TypeError:
@@ -48,18 +47,25 @@ class DirectorySearcher(DirectoryTraverser):
 				   
 		if self.target != self.target.name:
 			# TODO: does 'expanding', i.e. going to parents[1], parents[2], parents[4], parents[8], like a binary search, go faster? It should be O(log n)... right? 
-			#		as opposed to just doing a while loop
-			path_args = deque()
-			path_args.appendleft(self.target.name)
-			try:
-				while # is there an alternative to while True that works here?:
-					
-			
-			return self._r_path_find_all(current, [])
+			#		as opposed to just iterating 1 by 1
+			return self._r_find_all_path(current)
 		else:
-			return self._r_name_find_all(current, [])
+			return self._r_find_all_name(current)
 			# Base name is the same, but is the rest of it same?
 			# Also - do .lnks, junctions, symbolic links etc. work fine?
+	
+	# TODO: Handle file extensions. 'test.py' exists, 'test' does not.
+	def _r_find_all_path(current):
+		for item in current.iterdir():
+			if item.joinpath(self.target).exists:
+				# TODO: is there ever a scenario where we're looking for a/b/, and there's a/b/a/b/a/b?
+				return item.joinpath(self.target)
+			else:
+				layer_down = _r_find_all_path(item)
+				if layer_down:
+					self.results.append(layer_down)
+		return None
+
 
 				
 
