@@ -43,30 +43,40 @@ class DirectorySearcher(DirectoryTraverser):
 		Should basically accomplish the same functionality as pathlib.Path().glob
 		"""	
 		current = self.path
-		# TODO: remember pathlib.Path.iterdir is a thing, and can be used instead of an array
-				   
+		if not current.suffix:
+			extension = False
+		else:
+			extension = True
+
 		if self.target != self.target.name:
 			# TODO: does 'expanding', i.e. going to parents[1], parents[2], parents[4], parents[8], like a binary search, go faster? It should be O(log n)... right? 
 			#		as opposed to just iterating 1 by 1
-			return self._r_find_all_path(current)
+			self._r_find_all_path(current, extension)
 		else:
-			return self._r_find_all_name(current)
+			self._r_find_all_name(current, extension)
 			# Base name is the same, but is the rest of it same?
 			# Also - do .lnks, junctions, symbolic links etc. work fine?
+		results = self.results
+		self.results = []
+		return results
 	
 	# TODO: Handle file extensions. 'test.py' exists, 'test' does not.
-	def _r_find_all_path(current):
+	def _r_find_all_path(self, current):
 		for item in current.iterdir():
 			if item.joinpath(self.target).exists:
 				# TODO: is there ever a scenario where we're looking for a/b/, and there's a/b/a/b/a/b?
-				return item.joinpath(self.target)
-			else:
-				layer_down = _r_find_all_path(item)
-				if layer_down:
-					self.results.append(layer_down)
+				self.results.append(item.joinpath(self.target))
+			if item.is_dir():
+				self._r_find_all_path(item)
 		return None
 
-
+	def _r_find_all_name(self, current):
+		for item in current.iterdir():
+			if item == self.target:
+				self.results.append(item)
+			if item.is_dir():
+				self._r_find_all_name(item)
+		return None
 				
 
 def help():
