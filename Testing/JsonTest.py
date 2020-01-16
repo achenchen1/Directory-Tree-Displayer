@@ -1,3 +1,5 @@
+# JSON file taken from a snapshot of a 'league' on the simulation game at lol.zengm.com
+
 import json
 
 with open('test.json', 'r') as j_file:
