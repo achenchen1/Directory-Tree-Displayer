@@ -1,5 +1,5 @@
 """
-WSGI config for ServerDirectoryList project.
+WSGI config for TestDjango project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ServerDirectoryList.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TestDjango.settings')
 
 application = get_wsgi_application()
